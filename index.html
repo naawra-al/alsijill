@@ -441,39 +441,15 @@
           <button class="btn btn-ghost btn-sm" id="useCurrentCum"><span class="bilingual"><span class="ar">استخدم معدلي التراكمي المحسوب أعلاه</span><span class="en">Use my calculated cumulative GPA above</span></span></button>
         </div>
 
-        <h2 style="margin-top:22px;font-size:16px;" class="bilingual"><span class="ar">الفصول المتبقية</span><span class="en">Remaining terms</span></h2>
-        <table>
-          <thead><tr>
-            <th class="bilingual"><span class="ar">اسم الفصل</span><span class="en">Term</span></th>
-            <th class="bilingual"><span class="ar">عدد الساعات</span><span class="en">Hours</span></th>
-            <th></th>
-          </tr></thead>
-          <tbody id="planTermRows"></tbody>
-        </table>
-        <button class="btn btn-ghost btn-sm" id="addPlanTerm" style="margin-top:10px;">+ <span class="bilingual"><span class="ar">إضافة فصل</span><span class="en">Add term</span></span></button>
+        <h2 style="margin-top:22px;font-size:16px;" class="bilingual"><span class="ar">الفصول المتبقية ومواد كل فصل</span><span class="en">Remaining terms and their courses</span></h2>
+        <p class="hint bilingual"><span class="ar">أضف كل فصل متبقٍ، وسجّل مواده وساعاته. بعد حساب الخطة ستظهر لك الدرجة المطلوبة تقريبًا لكل مادة حسب ساعاتها، ويمكنك تجربة درجات مختلفة لترى إن كانت كافية.</span><span class="en">Add each remaining term and its courses with hours. After calculating the plan, you'll see roughly what grade each course needs based on its hours, and you can try different grades to check if they're enough.</span></p>
+        <div id="planTermsContainer"></div>
+        <button class="btn btn-ghost btn-sm" id="addPlanTerm" style="margin-top:6px;">+ <span class="bilingual"><span class="ar">إضافة فصل</span><span class="en">Add term</span></span></button>
 
         <div style="margin-top:18px;">
           <button class="btn btn-primary" id="computePlan"><span class="bilingual"><span class="ar">احسب الخطة</span><span class="en">Calculate plan</span></span></button>
         </div>
         <div id="planResultBox"></div>
-      </div>
-
-      <div class="card" id="nextTermCard" style="display:none;">
-        <h2 class="bilingual"><span class="ar">توزيع درجات الفصل القادم (تجربة تفاعلية)</span><span class="en">Distribute next term's grades (try it out)</span></h2>
-        <p class="hint bilingual"><span class="ar">أضف مواد الفصل القادم وجرّب درجات مختلفة لكل مادة لترى إن كانت كافية لبلوغ الهدف. هذا توزيع مقترح واحد فقط — يمكنك تعديله بحرية.</span><span class="en">Add next term's courses and try different grades per course to see if they reach your goal. This is one possible distribution — adjust it freely.</span></p>
-        <table>
-          <thead><tr>
-            <th class="bilingual"><span class="ar">المادة</span><span class="en">Course</span></th>
-            <th class="bilingual"><span class="ar">الساعات</span><span class="en">Hours</span></th>
-            <th class="bilingual"><span class="ar">درجة مفترضة (٤.٠)</span><span class="en">Assumed grade (4.0)</span></th>
-          </tr></thead>
-          <tbody id="nextTermRows"></tbody>
-        </table>
-        <button class="btn btn-ghost btn-sm" id="addNextTermCourse" style="margin-top:10px;">+ <span class="bilingual"><span class="ar">إضافة مادة</span><span class="en">Add course</span></span></button>
-        <div class="result-tile" id="nextTermResultTile">
-          <span class="bilingual"><span class="ar">معدل الفصل بهذا التوزيع</span><span class="en">Resulting term GPA</span></span>
-          <span class="num" id="nextTermResult">0.00</span>
-        </div>
       </div>
     </section>
 
@@ -555,8 +531,7 @@ let state = {
   cumManual:{gpa:0, hours:0},
 };
 let semCourses = [];   // working rows for semester tab
-let planTerms = [];    // remaining terms for plan tab
-let nextTermCourses = []; // rows for interactive next-term tool
+let planTerms = [];    // remaining terms for plan tab, each with its own courses[]
 let lastPlanResult = null;
 
 const ENCOURAGE_AR = [
@@ -867,39 +842,98 @@ function renderCumulative(){
 }
 
 /* ============ Graduation plan ============ */
+function termHours(term){ return term.courses.reduce((s,c)=>s+(Number(c.hours)||0),0); }
+function termPlannedGpa(term){
+  let h=0,p=0;
+  term.courses.forEach(c=>{ h+=Number(c.hours)||0; p+=(Number(c.hours)||0)*(Number(c.point)||0); });
+  return h>0 ? p/h : 0;
+}
 function addPlanTerm(row){
-  planTerms.push(row || {id:uid(), name:'فصل '+(planTerms.length+1), hours:15});
+  planTerms.push(row || {id:uid(), name:'فصل '+(planTerms.length+1), courses:[{id:uid(), name:'مادة 1', hours:3, point:0}]});
+  renderPlanTerms();
+}
+function addPlanCourse(termId){
+  const term = planTerms.find(t=>t.id===termId); if(!term) return;
+  term.courses.push({id:uid(), name:'مادة '+(term.courses.length+1), hours:3, point: lastPlanResult ? lastPlanResult.neededAvg : 0});
   renderPlanTerms();
 }
 function renderPlanTerms(){
-  const tbody = document.getElementById('planTermRows');
-  tbody.innerHTML='';
-  planTerms.forEach(t=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td><input type="text" value="${t.name}" data-f="name" data-id="${t.id}"></td>
-      <td><input type="number" style="width:80px" value="${t.hours}" data-f="hours" data-id="${t.id}"></td>
-      <td><button class="btn btn-danger btn-sm" data-delplan="${t.id}">✕</button></td>`;
-    tbody.appendChild(tr);
+  const box = document.getElementById('planTermsContainer');
+  box.innerHTML='';
+  planTerms.forEach((term,ti)=>{
+    const wrap = document.createElement('div');
+    wrap.className='card';
+    wrap.style.cssText='background:var(--parchment);box-shadow:none;margin-bottom:14px;';
+    const rows = term.courses.map(c=>`
+      <tr>
+        <td><input type="text" value="${c.name}" data-cf="name" data-tid="${term.id}" data-cid="${c.id}"></td>
+        <td><input type="number" style="width:70px" step="0.5" min="0" value="${c.hours}" data-cf="hours" data-tid="${term.id}" data-cid="${c.id}"></td>
+        <td><input type="number" style="width:85px" step="0.1" min="0" max="4" value="${c.point||0}" data-cf="point" data-tid="${term.id}" data-cid="${c.id}"></td>
+        <td><button class="btn btn-danger btn-sm" data-delcourse="${c.id}" data-tid="${term.id}">✕</button></td>
+      </tr>`).join('');
+    wrap.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+        <input type="text" value="${term.name}" data-termname="${term.id}" style="max-width:220px;font-weight:600;">
+        <button class="btn btn-danger btn-sm" data-delterm="${term.id}">حذف الفصل / Delete term</button>
+      </div>
+      <table>
+        <thead><tr>
+          <th class="bilingual"><span class="ar">المادة</span><span class="en">Course</span></th>
+          <th class="bilingual"><span class="ar">الساعات</span><span class="en">Hours</span></th>
+          <th class="bilingual"><span class="ar">الدرجة المطلوبة/المفترضة (٤.٠)</span><span class="en">Needed / assumed grade (4.0)</span></th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <button class="btn btn-ghost btn-sm" data-addcourse="${term.id}" style="margin-top:8px;">+ <span class="bilingual"><span class="ar">إضافة مادة</span><span class="en">Add course</span></span></button>
+      <div class="result-tile" id="termTile-${term.id}" style="margin-top:12px;">
+        <span class="bilingual"><span class="ar">ساعات الفصل: <span class="num">${termHours(term)}</span></span><span class="en">Term hours: <span class="num">${termHours(term)}</span></span></span>
+        <span class="num" id="termGpaVal-${term.id}">${fmt(termPlannedGpa(term))}</span>
+      </div>
+    `;
+    box.appendChild(wrap);
   });
-  tbody.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{
-    const row = planTerms.find(x=>x.id===inp.dataset.id); if(!row) return;
-    row[inp.dataset.f] = inp.dataset.f==='name' ? inp.value : Number(inp.value);
+
+  box.querySelectorAll('[data-termname]').forEach(inp=>inp.addEventListener('input',()=>{
+    const term = planTerms.find(t=>t.id===inp.dataset.termname); if(term) term.name = inp.value;
   }));
-  tbody.querySelectorAll('[data-delplan]').forEach(btn=>btn.addEventListener('click',()=>{
-    planTerms = planTerms.filter(t=>t.id!==btn.dataset.delplan); renderPlanTerms();
+  box.querySelectorAll('input[data-cf]').forEach(inp=>inp.addEventListener('input',()=>{
+    const term = planTerms.find(t=>t.id===inp.dataset.tid); if(!term) return;
+    const course = term.courses.find(c=>c.id===inp.dataset.cid); if(!course) return;
+    course[inp.dataset.cf] = inp.dataset.cf==='name' ? inp.value : Number(inp.value);
+    updateTermTile(term);
   }));
+  box.querySelectorAll('[data-delcourse]').forEach(btn=>btn.addEventListener('click',()=>{
+    const term = planTerms.find(t=>t.id===btn.dataset.tid); if(!term) return;
+    term.courses = term.courses.filter(c=>c.id!==btn.dataset.delcourse);
+    renderPlanTerms();
+  }));
+  box.querySelectorAll('[data-addcourse]').forEach(btn=>btn.addEventListener('click',()=>addPlanCourse(btn.dataset.addcourse)));
+  box.querySelectorAll('[data-delterm]').forEach(btn=>btn.addEventListener('click',()=>{
+    planTerms = planTerms.filter(t=>t.id!==btn.dataset.delterm); renderPlanTerms();
+  }));
+}
+function updateTermTile(term){
+  const tile = document.getElementById('termTile-'+term.id);
+  const val = document.getElementById('termGpaVal-'+term.id);
+  if(!tile || !val) return;
+  const gpa = termPlannedGpa(term);
+  val.textContent = fmt(gpa);
+  tile.querySelector('.bilingual .ar').innerHTML = `ساعات الفصل: <span class="num">${termHours(term)}</span>`;
+  tile.querySelector('.bilingual .en').innerHTML = `Term hours: <span class="num">${termHours(term)}</span>`;
+  if(lastPlanResult){
+    tile.className = 'result-tile ' + (gpa+0.001>=lastPlanResult.neededAvg ? '' : 'coral');
+  }
 }
 function computePlan(){
   const currentGpa = clamp(Number(document.getElementById('planCurrentGpa').value)||0, 0, 4);
   const completedHours = Math.max(0, Number(document.getElementById('planCompletedHours').value)||0);
   const targetGpa = clamp(Number(document.getElementById('planTargetGpa').value)||0, 0, 4);
-  const remainingHours = planTerms.reduce((s,t)=>s+(Number(t.hours)||0),0);
+  const remainingHours = planTerms.reduce((s,t)=>s+termHours(t),0);
   const box = document.getElementById('planResultBox');
 
   if(remainingHours<=0){
-    box.innerHTML = `<div class="encourage bilingual"><span class="ar">أضف فصولًا متبقية وساعاتها لبناء الخطة.</span><span class="en">Add your remaining terms and their hours to build the plan.</span></div>`;
-    document.getElementById('nextTermCard').style.display='none';
+    box.innerHTML = `<div class="encourage bilingual"><span class="ar">أضف فصولًا متبقية ومواد كل فصل لبناء الخطة.</span><span class="en">Add your remaining terms and their courses to build the plan.</span></div>`;
     return;
   }
   const totalHours = completedHours + remainingHours;
@@ -907,77 +941,38 @@ function computePlan(){
   const currentPoints = currentGpa * completedHours;
   const neededPoints = requiredPoints - currentPoints;
   const neededAvg = neededPoints / remainingHours;
+  lastPlanResult = {neededAvg: clamp(neededAvg,0,4)};
 
-  let statusHtml, tileClass='';
+  let statusHtml;
   if(neededAvg > 4.0){
     const maxFinal = (currentPoints + 4.0*remainingHours) / totalHours;
-    tileClass='coral';
     statusHtml = `<div class="result-tile coral"><span class="bilingual"><span class="ar">الهدف غير قابل للتحقيق بالساعات المتبقية</span><span class="en">Target isn't reachable with remaining hours</span></span><span class="num">—</span></div>
       <div class="encourage bilingual"><span class="ar">حتى لو حصلت على ٤.٠ في كل ما تبقى، أقصى معدل تراكمي ممكن هو <strong>${fmt(maxFinal)}</strong>. جرّب خفض الهدف قليلًا أو زيادة الساعات المتبقية.</span><span class="en">Even with a perfect 4.0 in everything left, the highest possible final GPA is <strong>${fmt(maxFinal)}</strong>. Try a slightly lower target, or more remaining hours.</span></div>`;
   } else if(neededAvg<=0){
-    tileClass='green-soft';
     statusHtml = `<div class="result-tile"><span class="bilingual"><span class="ar">هدفك مضمون بالفعل! 🎉</span><span class="en">Your target is already secured! 🎉</span></span><span class="num">✓</span></div>
       <div class="encourage bilingual"><span class="ar">حتى لو حصلت على ٠.٠ في الباقي رياضيًا لن تنخفض دون الهدف بهذه الساعات — لكن استمر بالاجتهاد بالطبع.</span><span class="en">Mathematically you won't drop below target even at 0.0 remaining — but of course, keep up the good work.</span></div>`;
   } else {
     statusHtml = `<div class="result-tile"><span class="bilingual"><span class="ar">المعدل المطلوب لكل ساعة متبقية</span><span class="en">Required average for remaining hours</span></span><span class="num">${fmt(neededAvg)}</span></div>`;
   }
 
-  // ladder per term
+  // fill in a default needed grade for any course still at 0, so each course shows a concrete number
+  planTerms.forEach(term=>term.courses.forEach(c=>{ if(!c.point) c.point = lastPlanResult.neededAvg; }));
+  renderPlanTerms();
+
+  // ladder per term, using each term's actual planned/needed GPA (weighted by its real course hours)
   let runHours=completedHours, runPoints=currentPoints;
   let rungs = `<div class="rung"><span class="dot now">الآن</span><span class="label bilingual"><span class="ar">وضعك الحالي</span><span class="en">Current status</span><div class="sub">${completedHours} ساعة</div></span><span class="val">${fmt(currentGpa)}</span></div>`;
   planTerms.forEach((t,i)=>{
-    const hrs = Number(t.hours)||0;
-    const req = clamp(neededAvg,0,4);
-    runPoints += req*hrs; runHours += hrs;
+    const hrs = termHours(t);
+    const planned = termPlannedGpa(t);
+    runPoints += planned*hrs; runHours += hrs;
     const running = runHours>0 ? runPoints/runHours : 0;
-    rungs += `<div class="rung"><span class="dot">${i+1}</span><span class="label">${t.name}<div class="sub bilingual"><span class="ar">${hrs} ساعة · تراكمي متوقع بعده: ${fmt(running)}</span><span class="en">${hrs} hrs · projected cumulative after: ${fmt(running)}</span></div></span><span class="val">${fmt(req)}</span></div>`;
+    rungs += `<div class="rung"><span class="dot">${i+1}</span><span class="label">${t.name}<div class="sub bilingual"><span class="ar">${hrs} ساعة · تراكمي متوقع بعده: ${fmt(running)}</span><span class="en">${hrs} hrs · projected cumulative after: ${fmt(running)}</span></div></span><span class="val">${fmt(planned)}</span></div>`;
   });
   rungs += `<div class="rung"><span class="dot target">🎯</span><span class="label bilingual"><span class="ar">الهدف عند التخرج</span><span class="en">Target at graduation</span></span><span class="val">${fmt(targetGpa)}</span></div>`;
 
   box.innerHTML = statusHtml + `<div class="ladder">${rungs}</div>` +
     `<div class="encourage bilingual"><span class="ar">✨ ${randomEncourage().ar}</span><span class="en">✨ ${randomEncourage().en}</span></div>`;
-
-  lastPlanResult = {neededAvg: clamp(neededAvg,0,4)};
-
-  // show next-term interactive tool prefilled from first plan term
-  const nextCard = document.getElementById('nextTermCard');
-  if(planTerms.length){
-    nextCard.style.display='block';
-    if(!nextTermCourses.length){
-      nextTermCourses = [{id:uid(), name:'مادة 1', hours: Math.min(3, planTerms[0].hours)||3, point: lastPlanResult.neededAvg}];
-    }
-    renderNextTermTable();
-  } else {
-    nextCard.style.display='none';
-  }
-}
-function renderNextTermTable(){
-  const tbody = document.getElementById('nextTermRows');
-  tbody.innerHTML='';
-  nextTermCourses.forEach(c=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="text" value="${c.name}" data-f="name" data-id="${c.id}"></td>
-      <td><input type="number" style="width:70px" step="0.5" value="${c.hours}" data-f="hours" data-id="${c.id}"></td>
-      <td><input type="number" style="width:80px" step="0.1" min="0" max="4" value="${c.point}" data-f="point" data-id="${c.id}"></td>`;
-    tbody.appendChild(tr);
-  });
-  tbody.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{
-    const row = nextTermCourses.find(x=>x.id===inp.dataset.id); if(!row) return;
-    row[inp.dataset.f] = inp.dataset.f==='name' ? inp.value : Number(inp.value);
-    computeNextTerm();
-  }));
-  computeNextTerm();
-}
-function computeNextTerm(){
-  let h=0,p=0;
-  nextTermCourses.forEach(c=>{ h+=Number(c.hours)||0; p+=(Number(c.hours)||0)*(Number(c.point)||0); });
-  const gpa = h>0? p/h : 0;
-  const tile = document.getElementById('nextTermResultTile');
-  document.getElementById('nextTermResult').textContent = fmt(gpa);
-  if(lastPlanResult){
-    tile.className = 'result-tile ' + (gpa+0.001>=lastPlanResult.neededAvg ? '' : 'coral');
-  }
 }
 
 /* ============ Dedication (fixed, non-editable) ============ */
@@ -1083,10 +1078,6 @@ async function init(){
   document.getElementById('useCurrentCum').addEventListener('click', ()=>{
     document.getElementById('planCurrentGpa').value = fmt(cumulativeTotals().gpa);
     document.getElementById('planCompletedHours').value = cumulativeTotals().hours;
-  });
-  document.getElementById('addNextTermCourse').addEventListener('click', ()=>{
-    nextTermCourses.push({id:uid(), name:'مادة '+(nextTermCourses.length+1), hours:3, point: lastPlanResult? lastPlanResult.neededAvg : 3});
-    renderNextTermTable();
   });
 
   renderCustomRows();
