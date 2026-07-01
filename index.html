@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>السجل | Al-Sijill — حاسبة المعدل الجامعي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400..700&family=Fraunces:opsz,wght@9..144,400..700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2B39;
+    --parchment:#FAF6ED;
+    --paper:#FFFFFF;
+    --line:#DDD3BC;
+    --green:#2F6F4F;
+    --green-soft:#E4EFE7;
+    --amber:#C98A3A;
+    --amber-soft:#F6EAD7;
+    --coral:#B5482F;
+    --coral-soft:#F5E4DE;
+    --ink-60:#5B6B78;
+    --radius:14px;
+    --shadow:0 2px 10px rgba(28,43,57,.06), 0 1px 2px rgba(28,43,57,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--parchment);color:var(--ink);}
+  body{
+    font-family:'IBM Plex Sans Arabic','IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  body.lang-en{font-family:'IBM Plex Sans','IBM Plex Sans Arabic',sans-serif;}
+  .heading{font-family:'Reem Kufi','Fraunces',serif;}
+  body.lang-en .heading, body.lang-both .heading-en{font-family:'Fraunces','Reem Kufi',serif;}
+  .num{font-family:'IBM Plex Mono',monospace;}
+
+  ::selection{background:var(--amber-soft);}
+  a{color:var(--green);}
+
+  /* ===== Layout shell ===== */
+  .app{max-width:1000px;margin:0 auto;padding:0 20px 80px;}
+  header.top{
+    position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--parchment) 85%,transparent);
+    padding-top:18px;padding-bottom:8px;
+  }
+  .top-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-mark{
+    width:40px;height:40px;border-radius:10px;background:var(--ink);
+    display:flex;align-items:center;justify-content:center;color:var(--parchment);
+    font-family:'Reem Kufi',serif;font-size:20px;flex:none;
+  }
+  .brand-title{font-family:'Reem Kufi','Fraunces',serif;font-size:20px;font-weight:700;letter-spacing:.2px;}
+  .brand-sub{font-size:12px;color:var(--ink-60);margin-top:1px;}
+
+  .top-controls{display:flex;align-items:center;gap:8px;}
+  .lang-switch{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:3px;box-shadow:var(--shadow);}
+  .lang-switch button{
+    border:none;background:transparent;padding:6px 12px;border-radius:999px;cursor:pointer;
+    font-size:13px;font-weight:600;color:var(--ink-60);
+  }
+  .lang-switch button.active{background:var(--ink);color:var(--parchment);}
+
+  .icon-btn{
+    width:38px;height:38px;border-radius:999px;border:1px solid var(--line);background:var(--paper);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);
+    font-size:17px;flex:none;transition:transform .15s ease;
+  }
+  .icon-btn:hover{transform:translateY(-1px);}
+
+  nav.tabs{
+    display:flex;gap:6px;overflow-x:auto;margin-top:16px;padding-bottom:6px;scrollbar-width:thin;
+  }
+  nav.tabs button{
+    flex:none;border:1px solid var(--line);background:var(--paper);border-radius:10px;
+    padding:9px 14px;font-size:13.5px;font-weight:600;color:var(--ink-60);cursor:pointer;
+    white-space:nowrap;
+  }
+  nav.tabs button.active{background:var(--ink);color:var(--parchment);border-color:var(--ink);}
+
+  main{margin-top:22px;}
+  section.panel{display:none;}
+  section.panel.active{display:block;animation:fade .35s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;box-shadow:var(--shadow);margin-bottom:18px;
+  }
+  .card h2{font-family:'Reem Kufi','Fraunces',serif;font-size:19px;margin:0 0 4px;}
+  .card .hint{color:var(--ink-60);font-size:13px;margin:0 0 16px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-60);margin-bottom:5px;}
+  input[type=text],input[type=number],select{
+    width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+    background:var(--parchment);font-size:14px;color:var(--ink);font-family:inherit;
+  }
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--green);outline-offset:1px;}
+  textarea{width:100%;border:1px solid var(--line);border-radius:9px;background:var(--parchment);padding:10px;font-family:inherit;font-size:14px;resize:vertical;}
+
+  .btn{
+    border:none;border-radius:9px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-primary{background:var(--green);color:#fff;}
+  .btn-primary:hover{background:#265f42;}
+  .btn-ghost{background:var(--paper);border:1px solid var(--line);color:var(--ink);}
+  .btn-ghost:hover{background:var(--parchment);}
+  .btn-danger{background:var(--coral-soft);color:var(--coral);}
+  .btn-sm{padding:6px 10px;font-size:12.5px;border-radius:7px;}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:start;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink-60);padding:8px 8px;border-bottom:1px solid var(--line);}
+  td{padding:8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  td input,td select{padding:7px 8px;font-size:13.5px;}
+
+  .result-tile{
+    display:flex;align-items:baseline;justify-content:space-between;
+    background:var(--green-soft);border-radius:11px;padding:16px 18px;margin-top:12px;
+  }
+  .result-tile .num{font-size:32px;font-weight:600;color:var(--green);}
+  .result-tile.amber{background:var(--amber-soft);}
+  .result-tile.amber .num{color:var(--amber);}
+  .result-tile.coral{background:var(--coral-soft);}
+  .result-tile.coral .num{color:var(--coral);}
+
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--amber-soft);color:var(--amber);}
+
+  .encourage{
+    margin-top:14px;padding:12px 14px;border-radius:10px;background:var(--parchment);
+    border:1px dashed var(--line);font-size:13.5px;color:var(--ink-60);
+  }
+
+  .lang-both .bilingual{display:flex;flex-direction:column;gap:1px;}
+  .lang-both .bilingual .en{font-size:.82em;color:var(--ink-60);font-family:'IBM Plex Sans',sans-serif;unicode-bidi:isolate;}
+  body:not(.lang-both) .bilingual .en{display:none;}
+  body.lang-en .bilingual .en{display:inline;font-size:1em;color:inherit;}
+  body.lang-en .bilingual .ar{display:none;}
+  body.lang-both.lang-en .bilingual .ar{display:none;}
+
+  /* Welcome hero */
+  .hero{
+    background:linear-gradient(135deg,var(--ink) 0%,#28405A 100%);
+    color:var(--parchment);border-radius:18px;padding:38px 30px;position:relative;overflow:hidden;margin-bottom:20px;
+  }
+  .hero::after{
+    content:"";position:absolute;inset:0;
+    background-image:radial-gradient(circle at 85% 20%, rgba(201,138,58,.18), transparent 45%),
+                      radial-gradient(circle at 10% 90%, rgba(47,111,79,.25), transparent 50%);
+  }
+  .hero-inner{position:relative;z-index:1;max-width:640px;}
+  .hero h1{font-family:'Reem Kufi','Fraunces',serif;font-size:30px;margin:0 0 10px;line-height:1.3;}
+  .hero p{color:#D9E1E8;font-size:14.5px;margin:0 0 18px;}
+  .hero-badges{display:flex;gap:10px;flex-wrap:wrap;}
+  .hero-badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:6px 13px;font-size:12.5px;}
+
+  /* Ladder / path visual for graduation plan */
+  .ladder{margin-top:18px;}
+  .rung{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line);}
+  .rung:last-child{border-bottom:none;}
+  .rung .dot{width:26px;height:26px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+  .rung .dot.now{background:var(--ink);}
+  .rung .dot.target{background:var(--amber);}
+  .rung .label{font-size:13.5px;}
+  .rung .label .sub{color:var(--ink-60);font-size:12px;}
+  .rung .val{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;}
+
+  /* Modal (dedication) */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(28,43,57,.5);z-index:100;
+    align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--paper);border-radius:16px;max-width:440px;width:100%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.25);}
+  .modal h3{font-family:'Reem Kufi','Fraunces',serif;margin:0 0 4px;font-size:19px;}
+  .dedication-card{
+    margin-top:14px;border-radius:12px;padding:20px;background:linear-gradient(135deg,#F6EAD7,#F5E4DE);
+    border:1px solid var(--line);text-align:center;
+  }
+  .dedication-card .to{font-family:'Reem Kufi','Fraunces',serif;font-size:17px;margin-bottom:6px;}
+  .dedication-card .msg{font-size:14px;color:var(--ink);line-height:1.7;white-space:pre-wrap;}
+  .dedication-card .from{margin-top:10px;font-size:12.5px;color:var(--ink-60);}
+
+  footer.foot{margin-top:36px;text-align:center;color:var(--ink-60);font-size:13px;padding:20px 0;}
+
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--parchment);
+    padding:10px 20px;border-radius:999px;font-size:13.5px;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s ease;
+  }
+  .toast.show{opacity:1;}
+
+  .empty{padding:26px;text-align:center;color:var(--ink-60);font-size:13.5px;}
+  .row-actions{display:flex;gap:6px;}
+  .small-muted{font-size:12px;color:var(--ink-60);}
+</style>
+</head>
+<body class="lang-both">
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="dedicationModal">
+  <div class="modal" style="text-align:center;">
+    <div class="dedication-card" style="margin-top:0;">
+      <div class="to">🤍 إهـــــــــــداء</div>
+      <div class="msg">إلى الظهورِ الأولِ لوضوحِ الشمسِ في الوادي الذي تغطِّيه نخيلُ وجبالُ بلادي.</div>
+    </div>
+    <button class="btn btn-ghost" id="dedClose" style="margin-top:16px;">إغلاق</button>
+  </div>
+</div>
+
+<div class="app">
+  <header class="top">
+    <div class="top-row">
+      <div class="brand">
+        <div class="brand-mark">س</div>
+        <div>
+          <div class="brand-title bilingual"><span class="ar">السِّجِلّ</span><span class="en">Al-Sijill</span></div>
+          <div class="brand-sub bilingual"><span class="ar">حاسبة المعدل ومخطط التخرج</span><span class="en">GPA calculator &amp; graduation planner</span></div>
+        </div>
+      </div>
+      <div class="top-controls">
+        <div class="lang-switch">
+          <button data-lang="ar">عربي</button>
+          <button data-lang="en">EN</button>
+          <button data-lang="both" class="active">AR/EN</button>
+        </div>
+        <button class="icon-btn" id="dedicationBtn" title="إهداء / Dedication">🤍</button>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="welcome" class="active bilingual"><span class="ar">البداية</span><span class="en">Welcome</span></button>
+      <button data-tab="guide" class="bilingual"><span class="ar">دليل الأنظمة</span><span class="en">Grading systems</span></button>
+      <button data-tab="semester" class="bilingual"><span class="ar">المعدل الفصلي</span><span class="en">Semester GPA</span></button>
+      <button data-tab="cumulative" class="bilingual"><span class="ar">المعدل التراكمي</span><span class="en">Cumulative GPA</span></button>
+      <button data-tab="plan" class="bilingual"><span class="ar">خطة التخرج</span><span class="en">Graduation plan</span></button>
+      <button data-tab="history" class="bilingual"><span class="ar">السجل</span><span class="en">History</span></button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ================= WELCOME ================= -->
+    <section class="panel active" id="panel-welcome">
+      <div class="hero">
+        <div class="hero-inner">
+          <h1 class="bilingual"><span class="ar">مرحبًا بك في السِّجِلّ</span><span class="en">Welcome to Al-Sijill</span></h1>
+          <p class="bilingual">
+            <span class="ar">أداة واحدة تتحدث لغة جامعتك أيًا كانت — احسب معدلك الفصلي والتراكمي، افهم نظام درجاتك، وارسم خطة واقعية للوصول إلى المعدل الذي تحلم به عند التخرج. بياناتك تُحفظ على جهازك فقط لتتابع تقدمك فصلًا بعد فصل.</span>
+            <span class="en">One tool that speaks your university's language — calculate your semester and cumulative GPA, understand your grading system, and map a realistic path to the graduation GPA you're aiming for. Your data stays saved on this device so you can track your progress term after term.</span>
+          </p>
+          <div class="hero-badges">
+            <div class="hero-badge bilingual"><span class="ar">🌐 عربي / إنجليزي</span><span class="en">🌐 Arabic / English</span></div>
+            <div class="hero-badge bilingual"><span class="ar">🧮 أي نظام درجات</span><span class="en">🧮 Any grading system</span></div>
+            <div class="hero-badge bilingual"><span class="ar">🎯 خطة تخرج ذكية</span><span class="en">🎯 Smart graduation plan</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">كيف تبدأ؟</span><span class="en">Where to start</span></h2>
+        <div class="grid-3">
+          <div>
+            <p class="small-muted bilingual"><span class="ar">١. افتح <strong>دليل الأنظمة</strong> واختر نظام درجات جامعتك، أو ابنِ نظامك الخاص إن لم تجده.</span><span class="en">1. Open <strong>Grading systems</strong> and pick your university's system, or build your own if it's not listed.</span></p>
+          </div>
+          <div>
+            <p class="small-muted bilingual"><span class="ar">٢. سجّل مواد فصلك في <strong>المعدل الفصلي</strong>، واحفظه ليُضاف إلى سجلّك التراكمي تلقائيًا.</span><span class="en">2. Log this term's courses under <strong>Semester GPA</strong> and save it — it feeds your cumulative record automatically.</span></p>
+          </div>
+          <div>
+            <p class="small-muted bilingual"><span class="ar">٣. توجّه إلى <strong>خطة التخرج</strong> لمعرفة المعدل المطلوب منك في كل فصل متبقٍ.</span><span class="en">3. Head to <strong>Graduation plan</strong> to see the GPA you need each remaining term.</span></p>
+          </div>
+        </div>
+        <div class="encourage bilingual">
+          <span class="ar">✨ كل رقم تسجّله هنا خطوة نحو الشهادة التي تعمل من أجلها. خذ الأمر خطوة بخطوة — أنت أقرب مما تظن.</span>
+          <span class="en">✨ Every number you log here is a step toward the degree you're working for. Take it one term at a time — you're closer than you think.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GUIDE ================= -->
+    <section class="panel" id="panel-guide">
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">دليل أنظمة الدرجات</span><span class="en">Grading systems guide</span></h2>
+        <p class="hint bilingual"><span class="ar">هذه أشهر الأنظمة المستخدمة حول العالم. اختر النظام الذي يعتمده برنامجك ليُستخدم في بقية الأداة، أو ابنِ نظامك الخاص أدناه.</span><span class="en">The most common systems used worldwide. Pick the one your program uses — it will be applied across the rest of the tool — or build your own below.</span></p>
+        <div id="systemsList"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">بناء نظام درجات خاص</span><span class="en">Build a custom grading system</span></h2>
+        <p class="hint bilingual"><span class="ar">إن كانت جامعتك تعتمد نظامًا مختلفًا، أنشئه هنا بإضافة كل تقدير وحدّه الأدنى والأقصى ونقطته من ٤.٠.</span><span class="en">If your university uses something different, define it here: add each grade label, its percentage range, and its point value out of 4.0.</span></p>
+        <div class="grid-2">
+          <div>
+            <label class="bilingual"><span class="ar">اسم النظام</span><span class="en">System name</span></label>
+            <input type="text" id="customSysName" placeholder="مثال: نظام جامعة كذا">
+          </div>
+          <div>
+            <label class="bilingual"><span class="ar">نوع الإدخال</span><span class="en">Input type</span></label>
+            <select id="customSysType">
+              <option value="letter">تقديرات حرفية / Letter grades</option>
+              <option value="percent">نسبة مئوية فقط / Percentage only</option>
+            </select>
+          </div>
+        </div>
+        <table style="margin-top:14px;" id="customSysTable">
+          <thead><tr>
+            <th class="bilingual"><span class="ar">التقدير</span><span class="en">Label</span></th>
+            <th class="bilingual"><span class="ar">من %</span><span class="en">Min %</span></th>
+            <th class="bilingual"><span class="ar">إلى %</span><span class="en">Max %</span></th>
+            <th class="bilingual"><span class="ar">النقطة (٤.٠)</span><span class="en">Point (4.0)</span></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="customSysRows"></tbody>
+        </table>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" id="addCustomRow">+ <span class="bilingual"><span class="ar">إضافة تقدير</span><span class="en">Add grade</span></span></button>
+          <button class="btn btn-primary btn-sm" id="saveCustomSys"><span class="bilingual"><span class="ar">حفظ النظام</span><span class="en">Save system</span></span></button>
+        </div>
+      </div>
+
+      <div class="card" id="myCustomSystemsCard" style="display:none;">
+        <h2 class="bilingual"><span class="ar">أنظمتي المخصّصة</span><span class="en">My custom systems</span></h2>
+        <div id="myCustomSystems"></div>
+      </div>
+    </section>
+
+    <!-- ================= SEMESTER ================= -->
+    <section class="panel" id="panel-semester">
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">حساب المعدل الفصلي</span><span class="en">Semester GPA calculator</span></h2>
+        <p class="hint bilingual"><span class="ar">النظام الفعّال حاليًا: <strong id="activeSystemLabel">—</strong>. يمكنك تغييره من تبويب دليل الأنظمة.</span><span class="en">Active grading system: <strong id="activeSystemLabelEn">—</strong>. Change it from the Grading systems tab.</span></p>
+        <div class="grid-2">
+          <div>
+            <label class="bilingual"><span class="ar">اسم الفصل</span><span class="en">Term name</span></label>
+            <input type="text" id="semName" placeholder="مثال: خريف ٢٠٢٦ / Fall 2026">
+          </div>
+        </div>
+        <table style="margin-top:14px;">
+          <thead><tr>
+            <th class="bilingual"><span class="ar">المادة</span><span class="en">Course</span></th>
+            <th class="bilingual"><span class="ar">الساعات</span><span class="en">Credit hrs</span></th>
+            <th class="bilingual"><span class="ar">الدرجة</span><span class="en">Grade</span></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="semRows"></tbody>
+        </table>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button class="btn btn-ghost btn-sm" id="addSemRow">+ <span class="bilingual"><span class="ar">إضافة مادة</span><span class="en">Add course</span></span></button>
+        </div>
+        <div class="result-tile">
+          <span class="bilingual"><span class="ar">المعدل الفصلي</span><span class="en">Semester GPA</span></span>
+          <span class="num" id="semResult">0.00</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-primary" id="saveSemester"><span class="bilingual"><span class="ar">حفظ الفصل في السجل</span><span class="en">Save term to history</span></span></button>
+        </div>
+        <div class="encourage" id="semEncourage"></div>
+      </div>
+    </section>
+
+    <!-- ================= CUMULATIVE ================= -->
+    <section class="panel" id="panel-cumulative">
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">المعدل التراكمي</span><span class="en">Cumulative GPA</span></h2>
+        <p class="hint bilingual"><span class="ar">يُحسب تلقائيًا من الفصول المحفوظة في سجلّك. يمكنك أيضًا إدخال معدل تراكمي سابق يدويًا إن كنت تنقل بياناتك من مكان آخر.</span><span class="en">Calculated automatically from the terms saved in your history. You can also enter a prior cumulative GPA manually if you're migrating your records.</span></p>
+        <div id="cumulativeBreakdown"></div>
+        <div class="result-tile">
+          <span class="bilingual"><span class="ar">المعدل التراكمي (٤.٠)</span><span class="en">Cumulative GPA (4.0)</span></span>
+          <span class="num" id="cumResult">0.00</span>
+        </div>
+        <div class="result-tile amber">
+          <span class="bilingual"><span class="ar">ما يعادله من ١٠٠ (تقريبي)</span><span class="en">Approx. equivalent /100</span></span>
+          <span class="num" id="cumResultPercent">0</span>
+        </div>
+
+        <div class="card" style="margin-top:18px;background:var(--parchment);box-shadow:none;">
+          <h2 style="font-size:16px;" class="bilingual"><span class="ar">إدخال يدوي (اختياري)</span><span class="en">Manual entry (optional)</span></h2>
+          <div class="grid-3">
+            <div>
+              <label class="bilingual"><span class="ar">معدل تراكمي سابق</span><span class="en">Prior cumulative GPA</span></label>
+              <input type="number" step="0.01" id="manualPriorGpa" placeholder="0.00 – 4.00">
+            </div>
+            <div>
+              <label class="bilingual"><span class="ar">ساعات سابقة منجزة</span><span class="en">Prior completed hours</span></label>
+              <input type="number" id="manualPriorHours" placeholder="0">
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button class="btn btn-ghost" id="applyManual" style="width:100%;"><span class="bilingual"><span class="ar">دمج مع السجل</span><span class="en">Merge into total</span></span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">محوّل سريع: ١٠٠ ⇄ ٤.٠</span><span class="en">Quick converter: 100 ⇄ 4.0</span></h2>
+        <div class="grid-3">
+          <div>
+            <label class="bilingual"><span class="ar">من ١٠٠</span><span class="en">From /100</span></label>
+            <input type="number" id="convPercent" placeholder="85">
+          </div>
+          <div>
+            <label class="bilingual"><span class="ar">أو من ٤.٠</span><span class="en">Or from /4.0</span></label>
+            <input type="number" step="0.01" id="convPoint" placeholder="3.30">
+          </div>
+          <div>
+            <label class="bilingual"><span class="ar">طريقة التحويل</span><span class="en">Conversion method</span></label>
+            <select id="convMethod">
+              <option value="table">جدول قياسي / Standard table</option>
+              <option value="linear">خطي (نقطة=نسبة÷٢٥) / Linear</option>
+            </select>
+          </div>
+        </div>
+        <div class="result-tile">
+          <span class="bilingual"><span class="ar">الناتج</span><span class="en">Result</span></span>
+          <span class="num" id="convResult">—</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PLAN ================= -->
+    <section class="panel" id="panel-plan">
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">بناء خطة التخرج</span><span class="en">Build your graduation plan</span></h2>
+        <p class="hint bilingual"><span class="ar">أدخل وضعك الحالي وهدفك، وستُبنى لك خطة توضح المعدل المطلوب في كل فصل متبقٍ.</span><span class="en">Enter your current status and your goal, and a plan will show the GPA you need each remaining term.</span></p>
+        <div class="grid-3">
+          <div>
+            <label class="bilingual"><span class="ar">معدلك التراكمي الحالي (٤.٠)</span><span class="en">Current cumulative GPA (4.0)</span></label>
+            <input type="number" step="0.01" id="planCurrentGpa" placeholder="2.80">
+          </div>
+          <div>
+            <label class="bilingual"><span class="ar">الساعات المنجزة</span><span class="en">Completed hours</span></label>
+            <input type="number" id="planCompletedHours" placeholder="60">
+          </div>
+          <div>
+            <label class="bilingual"><span class="ar">المعدل المستهدف عند التخرج</span><span class="en">Target graduation GPA</span></label>
+            <input type="number" step="0.01" id="planTargetGpa" placeholder="3.20">
+          </div>
+        </div>
+        <div style="margin-top:6px;">
+          <button class="btn btn-ghost btn-sm" id="useCurrentCum"><span class="bilingual"><span class="ar">استخدم معدلي التراكمي المحسوب أعلاه</span><span class="en">Use my calculated cumulative GPA above</span></span></button>
+        </div>
+
+        <h2 style="margin-top:22px;font-size:16px;" class="bilingual"><span class="ar">الفصول المتبقية</span><span class="en">Remaining terms</span></h2>
+        <table>
+          <thead><tr>
+            <th class="bilingual"><span class="ar">اسم الفصل</span><span class="en">Term</span></th>
+            <th class="bilingual"><span class="ar">عدد الساعات</span><span class="en">Hours</span></th>
+            <th></th>
+          </tr></thead>
+          <tbody id="planTermRows"></tbody>
+        </table>
+        <button class="btn btn-ghost btn-sm" id="addPlanTerm" style="margin-top:10px;">+ <span class="bilingual"><span class="ar">إضافة فصل</span><span class="en">Add term</span></span></button>
+
+        <div style="margin-top:18px;">
+          <button class="btn btn-primary" id="computePlan"><span class="bilingual"><span class="ar">احسب الخطة</span><span class="en">Calculate plan</span></span></button>
+        </div>
+        <div id="planResultBox"></div>
+      </div>
+
+      <div class="card" id="nextTermCard" style="display:none;">
+        <h2 class="bilingual"><span class="ar">توزيع درجات الفصل القادم (تجربة تفاعلية)</span><span class="en">Distribute next term's grades (try it out)</span></h2>
+        <p class="hint bilingual"><span class="ar">أضف مواد الفصل القادم وجرّب درجات مختلفة لكل مادة لترى إن كانت كافية لبلوغ الهدف. هذا توزيع مقترح واحد فقط — يمكنك تعديله بحرية.</span><span class="en">Add next term's courses and try different grades per course to see if they reach your goal. This is one possible distribution — adjust it freely.</span></p>
+        <table>
+          <thead><tr>
+            <th class="bilingual"><span class="ar">المادة</span><span class="en">Course</span></th>
+            <th class="bilingual"><span class="ar">الساعات</span><span class="en">Hours</span></th>
+            <th class="bilingual"><span class="ar">درجة مفترضة (٤.٠)</span><span class="en">Assumed grade (4.0)</span></th>
+          </tr></thead>
+          <tbody id="nextTermRows"></tbody>
+        </table>
+        <button class="btn btn-ghost btn-sm" id="addNextTermCourse" style="margin-top:10px;">+ <span class="bilingual"><span class="ar">إضافة مادة</span><span class="en">Add course</span></span></button>
+        <div class="result-tile" id="nextTermResultTile">
+          <span class="bilingual"><span class="ar">معدل الفصل بهذا التوزيع</span><span class="en">Resulting term GPA</span></span>
+          <span class="num" id="nextTermResult">0.00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= HISTORY ================= -->
+    <section class="panel" id="panel-history">
+      <div class="card">
+        <h2 class="bilingual"><span class="ar">سجلّ فصولك</span><span class="en">Your saved terms</span></h2>
+        <p class="hint bilingual"><span class="ar">كل فصل تحفظه من تبويب المعدل الفصلي يظهر هنا، ويُستخدم تلقائيًا في حساب معدلك التراكمي.</span><span class="en">Every term you save from Semester GPA appears here, and feeds your cumulative GPA automatically.</span></p>
+        <div id="historyList"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <p class="bilingual">
+      <span class="ar">🤍 استمر بثبات — كل فصل فرصة جديدة لتقترب من هدفك. بياناتك محفوظة على جهازك وحدك.</span>
+      <span class="en">🤍 Keep going steadily — every term is a new chance to move closer to your goal. Your data stays saved on this device only.</span>
+    </p>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============ Grading systems (built-in) ============ */
+const US_TABLE = [
+  {label:'A+', min:97, max:100, point:4.0},
+  {label:'A',  min:93, max:96,  point:4.0},
+  {label:'A-', min:90, max:92,  point:3.7},
+  {label:'B+', min:87, max:89,  point:3.3},
+  {label:'B',  min:83, max:86,  point:3.0},
+  {label:'B-', min:80, max:82,  point:2.7},
+  {label:'C+', min:77, max:79,  point:2.3},
+  {label:'C',  min:73, max:76,  point:2.0},
+  {label:'C-', min:70, max:72,  point:1.7},
+  {label:'D+', min:67, max:69,  point:1.3},
+  {label:'D',  min:63, max:66,  point:1.0},
+  {label:'D-', min:60, max:62,  point:0.7},
+  {label:'F',  min:0,  max:59,  point:0.0},
+];
+const ARABIC_TABLE = [
+  {label:'ممتاز مرتفع', min:95, max:100, point:4.0},
+  {label:'ممتاز',       min:90, max:94,  point:3.75},
+  {label:'جيد جدًا مرتفع', min:85, max:89, point:3.5},
+  {label:'جيد جدًا',    min:80, max:84,  point:3.25},
+  {label:'جيد مرتفع',   min:75, max:79,  point:3.0},
+  {label:'جيد',         min:70, max:74,  point:2.5},
+  {label:'مقبول',       min:60, max:69,  point:2.0},
+  {label:'ضعيف',        min:50, max:59,  point:1.0},
+  {label:'راسب',        min:0,  max:49,  point:0.0},
+];
+const UK_TABLE = [
+  {label:'Distinction / امتياز', min:70, max:100, point:4.0},
+  {label:'Merit / جيد جدًا',      min:60, max:69,  point:3.3},
+  {label:'Pass / اجتياز',        min:50, max:59,  point:2.3},
+  {label:'Fail / راسب',          min:0,  max:49,  point:0.0},
+];
+
+const BUILTIN_SYSTEMS = [
+  {id:'us_letter', builtin:true, type:'letter', scale:US_TABLE,
+    name:{ar:'النظام الأمريكي الحرفي (A–F / 4.0)', en:'US Letter Grades (A–F / 4.0)'}},
+  {id:'percent100', builtin:true, type:'percent', scale:US_TABLE,
+    name:{ar:'نسبة مئوية مباشرة (٠–١٠٠)', en:'Direct percentage (0–100)'}},
+  {id:'arabic_common', builtin:true, type:'letter', scale:ARABIC_TABLE,
+    name:{ar:'نظام تقديرات عربي شائع (ممتاز/جيد جدًا/جيد...)', en:'Common Arabic grade descriptors'}},
+  {id:'uk_honours', builtin:true, type:'letter', scale:UK_TABLE,
+    name:{ar:'نظام بريطاني/تصنيفي (Distinction/Merit/Pass)', en:'UK-style honours (Distinction/Merit/Pass)'}},
+];
+
+/* ============ State ============ */
+let state = {
+  lang:'both',
+  activeSystemId:'us_letter',
+  customSystems:[],
+  semesters:[],
+  dedication:null,
+  cumManual:{gpa:0, hours:0},
+};
+let semCourses = [];   // working rows for semester tab
+let planTerms = [];    // remaining terms for plan tab
+let nextTermCourses = []; // rows for interactive next-term tool
+let lastPlanResult = null;
+
+const ENCOURAGE_AR = [
+  "خطوة صغيرة اليوم تصنع فرقًا كبيرًا في السجل النهائي.",
+  "المعدل رقم يتغيّر — والانضباط هو ما يغيّره لصالحك.",
+  "أنت لا تُقاس بفصل واحد، بل بمسار كامل. استمر.",
+  "كل مادة تُنهيها بجدّية هي خطوة أقرب لتخرجك.",
+  "لا بأس بالتعثر أحيانًا، المهم أن تعود للمسار."
+];
+const ENCOURAGE_EN = [
+  "A small step today makes a real difference in the final record.",
+  "A GPA is just a number that moves — discipline is what moves it in your favor.",
+  "You're not defined by one term, but by the whole path. Keep going.",
+  "Every course you finish with care is a step closer to graduation.",
+  "It's okay to stumble sometimes — what matters is getting back on track."
+];
+
+/* ============ Storage helpers ============ */
+async function loadState(){
+  try{
+    const keys = ['settings','customSystems','semesters','dedication','cumManual'];
+    const res = await window.storage.list('', false);
+    const existing = new Set((res && res.keys) || []);
+    if(existing.has('settings')){
+      const r = await window.storage.get('settings', false);
+      if(r && r.value){ const v = JSON.parse(r.value); state.lang = v.lang || 'both'; state.activeSystemId = v.activeSystemId || 'us_letter'; }
+    }
+    if(existing.has('customSystems')){
+      const r = await window.storage.get('customSystems', false);
+      if(r && r.value) state.customSystems = JSON.parse(r.value);
+    }
+    if(existing.has('semesters')){
+      const r = await window.storage.get('semesters', false);
+      if(r && r.value) state.semesters = JSON.parse(r.value);
+    }
+    if(existing.has('dedication')){
+      const r = await window.storage.get('dedication', false);
+      if(r && r.value) state.dedication = JSON.parse(r.value);
+    }
+    if(existing.has('cumManual')){
+      const r = await window.storage.get('cumManual', false);
+      if(r && r.value) state.cumManual = JSON.parse(r.value);
+    }
+  }catch(e){ console.warn('load failed', e); }
+}
+async function saveKey(key, value){
+  try{ await window.storage.set(key, JSON.stringify(value), false); }
+  catch(e){ console.warn('save failed', key, e); showToast('تعذّر الحفظ، حاول مجددًا / Save failed, try again'); }
+}
+function saveSettings(){ saveKey('settings', {lang:state.lang, activeSystemId:state.activeSystemId}); }
+
+/* ============ Utility ============ */
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+function allSystems(){ return BUILTIN_SYSTEMS.concat(state.customSystems); }
+function getSystem(id){ return allSystems().find(s=>s.id===id) || BUILTIN_SYSTEMS[0]; }
+function sysName(sys){ return state.lang==='en' ? sys.name.en : (state.lang==='ar' ? sys.name.ar : sys.name.ar+' / '+sys.name.en); }
+
+function percentToPoint(pct, table){
+  pct = clamp(Number(pct)||0, 0, 100);
+  const row = table.find(r=>pct>=r.min && pct<=r.max);
+  if(row) return row.point;
+  return clamp(pct/25, 0, 4);
+}
+function pointToPercentApprox(pt, table){
+  pt = clamp(Number(pt)||0, 0, 4);
+  let best=null, bestDiff=Infinity;
+  table.forEach(r=>{ const d=Math.abs(r.point-pt); if(d<bestDiff){bestDiff=d; best=r;} });
+  if(best) return Math.round((best.min+best.max)/2);
+  return Math.round(pt*25);
+}
+function showToast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(showToast._h); showToast._h=setTimeout(()=>t.classList.remove('show'), 2200);
+}
+function fmt(n){ return (Math.round(n*100)/100).toFixed(2); }
+
+/* ============ Language ============ */
+function applyLang(){
+  document.body.classList.remove('lang-ar','lang-en','lang-both');
+  document.body.classList.add('lang-'+state.lang);
+  const dir = state.lang==='en' ? 'ltr' : 'rtl';
+  document.documentElement.setAttribute('dir', dir);
+  document.documentElement.setAttribute('lang', state.lang==='en'?'en':'ar');
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.classList.toggle('active', b.dataset.lang===state.lang));
+}
+
+/* ============ Tabs ============ */
+function switchTab(tab){
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('section.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+tab));
+  if(tab==='cumulative') renderCumulative();
+  if(tab==='history') renderHistory();
+  if(tab==='semester') updateActiveSystemLabel();
+}
+
+/* ============ Guide tab: systems list ============ */
+function renderSystemsList(){
+  const box = document.getElementById('systemsList');
+  box.innerHTML = '';
+  BUILTIN_SYSTEMS.forEach(sys=>{
+    const isActive = sys.id===state.activeSystemId;
+    const div = document.createElement('div');
+    div.className='card';
+    div.style.cssText='background:'+(isActive?'var(--green-soft)':'var(--parchment)')+';box-shadow:none;margin-bottom:12px;';
+    let rows = sys.scale.map(r=>`<tr><td>${r.label}</td><td class="num">${r.min}–${r.max}%</td><td class="num">${r.point.toFixed(2)}</td></tr>`).join('');
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+        <h2 style="font-size:16px;">${sysName(sys)}</h2>
+        <button class="btn ${isActive?'btn-primary':'btn-ghost'} btn-sm" data-choose="${sys.id}">${isActive?'✓ مفعّل / Active':'اختر / Choose'}</button>
+      </div>
+      <table style="margin-top:8px;"><thead><tr><th>Grade</th><th>%</th><th>/4.0</th></tr></thead><tbody>${rows}</tbody></table>
+    `;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('[data-choose]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.activeSystemId = btn.dataset.choose;
+      saveSettings();
+      renderSystemsList();
+      renderMyCustomSystems();
+      updateActiveSystemLabel();
+      renderSemesterTable();
+      showToast('تم تفعيل النظام / System activated');
+    });
+  });
+}
+function renderMyCustomSystems(){
+  const card = document.getElementById('myCustomSystemsCard');
+  const box = document.getElementById('myCustomSystems');
+  if(!state.customSystems.length){ card.style.display='none'; return; }
+  card.style.display='block';
+  box.innerHTML='';
+  state.customSystems.forEach(sys=>{
+    const isActive = sys.id===state.activeSystemId;
+    const div=document.createElement('div');
+    div.className='card'; div.style.cssText='background:'+(isActive?'var(--green-soft)':'var(--parchment)')+';box-shadow:none;margin-bottom:12px;';
+    let rows = sys.scale.map(r=>`<tr><td>${r.label}</td><td class="num">${r.min}–${r.max}%</td><td class="num">${r.point.toFixed(2)}</td></tr>`).join('');
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+        <h2 style="font-size:16px;">${sysName(sys)}</h2>
+        <div class="row-actions">
+          <button class="btn ${isActive?'btn-primary':'btn-ghost'} btn-sm" data-choose="${sys.id}">${isActive?'✓ مفعّل':'اختر'}</button>
+          <button class="btn btn-danger btn-sm" data-del="${sys.id}">حذف / Delete</button>
+        </div>
+      </div>
+      <table style="margin-top:8px;"><tbody>${rows}</tbody></table>`;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('[data-choose]').forEach(btn=>btn.addEventListener('click',()=>{
+    state.activeSystemId=btn.dataset.choose; saveSettings(); renderSystemsList(); renderMyCustomSystems(); updateActiveSystemLabel(); renderSemesterTable();
+    showToast('تم تفعيل النظام / System activated');
+  }));
+  box.querySelectorAll('[data-del]').forEach(btn=>btn.addEventListener('click',()=>{
+    state.customSystems = state.customSystems.filter(s=>s.id!==btn.dataset.del);
+    if(state.activeSystemId===btn.dataset.del) state.activeSystemId='us_letter';
+    saveKey('customSystems', state.customSystems); saveSettings();
+    renderSystemsList(); renderMyCustomSystems(); updateActiveSystemLabel();
+  }));
+}
+
+/* ============ Custom system builder ============ */
+let customRows = [];
+function addCustomRow(row){
+  customRows.push(row || {id:uid(), label:'', min:0, max:0, point:0});
+  renderCustomRows();
+}
+function renderCustomRows(){
+  const tbody = document.getElementById('customSysRows');
+  tbody.innerHTML='';
+  customRows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${r.label}" data-f="label" data-id="${r.id}" placeholder="A / ممتاز"></td>
+      <td><input type="number" value="${r.min}" data-f="min" data-id="${r.id}"></td>
+      <td><input type="number" value="${r.max}" data-f="max" data-id="${r.id}"></td>
+      <td><input type="number" step="0.01" value="${r.point}" data-f="point" data-id="${r.id}"></td>
+      <td><button class="btn btn-danger btn-sm" data-delrow="${r.id}">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const row = customRows.find(x=>x.id===inp.dataset.id);
+      if(!row) return;
+      const f=inp.dataset.f;
+      row[f] = (f==='label') ? inp.value : Number(inp.value);
+    });
+  });
+  tbody.querySelectorAll('[data-delrow]').forEach(btn=>btn.addEventListener('click',()=>{
+    customRows = customRows.filter(r=>r.id!==btn.dataset.delrow); renderCustomRows();
+  }));
+}
+
+/* ============ Semester tab ============ */
+function addSemRow(row){
+  semCourses.push(row || {id:uid(), name:'', hours:3, val:0});
+  renderSemesterTable();
+}
+function updateActiveSystemLabel(){
+  const sys = getSystem(state.activeSystemId);
+  document.getElementById('activeSystemLabel').textContent = sys.name.ar;
+  document.getElementById('activeSystemLabelEn').textContent = sys.name.en;
+}
+function renderSemesterTable(){
+  const sys = getSystem(state.activeSystemId);
+  const tbody = document.getElementById('semRows');
+  tbody.innerHTML='';
+  semCourses.forEach(c=>{
+    const tr=document.createElement('tr');
+    let gradeInput;
+    if(sys.type==='percent'){
+      gradeInput = `<input type="number" min="0" max="100" value="${c.val}" data-f="val" data-id="${c.id}" placeholder="0-100">`;
+    } else {
+      const opts = sys.scale.map(g=>`<option value="${g.point}" ${Number(c.val)===g.point?'selected':''}>${g.label} (${g.point.toFixed(2)})</option>`).join('');
+      gradeInput = `<select data-f="val" data-id="${c.id}"><option value="">—</option>${opts}</select>`;
+    }
+    tr.innerHTML = `
+      <td><input type="text" value="${c.name}" data-f="name" data-id="${c.id}" placeholder="اسم المادة / Course"></td>
+      <td><input type="number" min="0" step="0.5" style="width:70px" value="${c.hours}" data-f="hours" data-id="${c.id}"></td>
+      <td>${gradeInput}</td>
+      <td><button class="btn btn-danger btn-sm" data-delsem="${c.id}">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input,select').forEach(inp=>{
+    inp.addEventListener('input', ()=>{
+      const row = semCourses.find(x=>x.id===inp.dataset.id); if(!row) return;
+      const f = inp.dataset.f;
+      row[f] = (f==='name') ? inp.value : Number(inp.value);
+      computeSemester();
+    });
+  });
+  tbody.querySelectorAll('[data-delsem]').forEach(btn=>btn.addEventListener('click',()=>{
+    semCourses = semCourses.filter(c=>c.id!==btn.dataset.delsem); renderSemesterTable(); computeSemester();
+  }));
+  computeSemester();
+}
+function computeSemester(){
+  const sys = getSystem(state.activeSystemId);
+  let totalHours=0, totalPoints=0;
+  semCourses.forEach(c=>{
+    const hours = Number(c.hours)||0;
+    let point;
+    if(sys.type==='percent') point = percentToPoint(c.val, sys.scale);
+    else point = Number(c.val)||0;
+    totalHours += hours;
+    totalPoints += hours*point;
+  });
+  const gpa = totalHours>0 ? totalPoints/totalHours : 0;
+  document.getElementById('semResult').textContent = fmt(gpa);
+  return {gpa, totalHours};
+}
+function randomEncourage(){
+  const idx = Math.floor(Math.random()*ENCOURAGE_AR.length);
+  return {ar:ENCOURAGE_AR[idx], en:ENCOURAGE_EN[idx]};
+}
+function refreshSemEncourage(){
+  const m = randomEncourage();
+  document.getElementById('semEncourage').innerHTML =
+    `<span class="bilingual"><span class="ar">✨ ${m.ar}</span><span class="en">✨ ${m.en}</span></span>`;
+}
+
+/* ============ History / cumulative ============ */
+function renderHistory(){
+  const box = document.getElementById('historyList');
+  if(!state.semesters.length){
+    box.innerHTML = `<div class="empty bilingual"><span class="ar">لا توجد فصول محفوظة بعد. احسب فصلًا واحفظه من تبويب المعدل الفصلي.</span><span class="en">No saved terms yet. Calculate a term and save it from the Semester GPA tab.</span></div>`;
+    return;
+  }
+  box.innerHTML='';
+  state.semesters.slice().reverse().forEach(sem=>{
+    const div=document.createElement('div');
+    div.className='card'; div.style.cssText='background:var(--parchment);box-shadow:none;margin-bottom:10px;';
+    const coursesRows = sem.courses.map(c=>`<tr><td>${c.name||'-'}</td><td class="num">${c.hours}</td><td class="num">${(Number(c.pointUsed)||0).toFixed(2)}</td></tr>`).join('');
+    div.innerHTML = `
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center;">
+        <div>
+          <strong>${sem.name || 'فصل بلا اسم'}</strong>
+          <div class="small-muted">${new Date(sem.date).toLocaleDateString()} · <span class="pill">${sem.gpa.toFixed(2)} GPA</span> · ${sem.totalHours} ساعة</div>
+        </div>
+        <button class="btn btn-danger btn-sm" data-delhist="${sem.id}">حذف / Delete</button>
+      </div>
+      <table style="margin-top:8px;"><tbody>${coursesRows}</tbody></table>
+    `;
+    box.appendChild(div);
+  });
+  box.querySelectorAll('[data-delhist]').forEach(btn=>btn.addEventListener('click',()=>{
+    state.semesters = state.semesters.filter(s=>s.id!==btn.dataset.delhist);
+    saveKey('semesters', state.semesters);
+    renderHistory(); renderCumulative();
+  }));
+}
+function cumulativeTotals(){
+  let hours = Number(state.cumManual.hours)||0;
+  let points = (Number(state.cumManual.gpa)||0) * hours;
+  state.semesters.forEach(s=>{ hours += s.totalHours; points += s.gpa*s.totalHours; });
+  return {hours, points, gpa: hours>0 ? points/hours : 0};
+}
+function renderCumulative(){
+  const box = document.getElementById('cumulativeBreakdown');
+  const t = cumulativeTotals();
+  let rows = state.semesters.map(s=>`<div class="rung"><span class="dot">·</span><span class="label">${s.name}<div class="sub">${s.totalHours} ساعة</div></span><span class="val">${s.gpa.toFixed(2)}</span></div>`).join('');
+  if(state.cumManual.hours>0){
+    rows = `<div class="rung"><span class="dot now">M</span><span class="label">رصيد سابق يدوي / Manual prior record<div class="sub">${state.cumManual.hours} ساعة</div></span><span class="val">${Number(state.cumManual.gpa).toFixed(2)}</span></div>` + rows;
+  }
+  box.innerHTML = rows ? `<div class="ladder">${rows}</div>` : `<div class="empty bilingual"><span class="ar">لا توجد بيانات بعد — احفظ فصلًا من تبويب المعدل الفصلي.</span><span class="en">No data yet — save a term from the Semester GPA tab.</span></div>`;
+  document.getElementById('cumResult').textContent = fmt(t.gpa);
+  document.getElementById('cumResultPercent').textContent = pointToPercentApprox(t.gpa, US_TABLE);
+}
+
+/* ============ Graduation plan ============ */
+function addPlanTerm(row){
+  planTerms.push(row || {id:uid(), name:'فصل '+(planTerms.length+1), hours:15});
+  renderPlanTerms();
+}
+function renderPlanTerms(){
+  const tbody = document.getElementById('planTermRows');
+  tbody.innerHTML='';
+  planTerms.forEach(t=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td><input type="text" value="${t.name}" data-f="name" data-id="${t.id}"></td>
+      <td><input type="number" style="width:80px" value="${t.hours}" data-f="hours" data-id="${t.id}"></td>
+      <td><button class="btn btn-danger btn-sm" data-delplan="${t.id}">✕</button></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{
+    const row = planTerms.find(x=>x.id===inp.dataset.id); if(!row) return;
+    row[inp.dataset.f] = inp.dataset.f==='name' ? inp.value : Number(inp.value);
+  }));
+  tbody.querySelectorAll('[data-delplan]').forEach(btn=>btn.addEventListener('click',()=>{
+    planTerms = planTerms.filter(t=>t.id!==btn.dataset.delplan); renderPlanTerms();
+  }));
+}
+function computePlan(){
+  const currentGpa = clamp(Number(document.getElementById('planCurrentGpa').value)||0, 0, 4);
+  const completedHours = Math.max(0, Number(document.getElementById('planCompletedHours').value)||0);
+  const targetGpa = clamp(Number(document.getElementById('planTargetGpa').value)||0, 0, 4);
+  const remainingHours = planTerms.reduce((s,t)=>s+(Number(t.hours)||0),0);
+  const box = document.getElementById('planResultBox');
+
+  if(remainingHours<=0){
+    box.innerHTML = `<div class="encourage bilingual"><span class="ar">أضف فصولًا متبقية وساعاتها لبناء الخطة.</span><span class="en">Add your remaining terms and their hours to build the plan.</span></div>`;
+    document.getElementById('nextTermCard').style.display='none';
+    return;
+  }
+  const totalHours = completedHours + remainingHours;
+  const requiredPoints = targetGpa * totalHours;
+  const currentPoints = currentGpa * completedHours;
+  const neededPoints = requiredPoints - currentPoints;
+  const neededAvg = neededPoints / remainingHours;
+
+  let statusHtml, tileClass='';
+  if(neededAvg > 4.0){
+    const maxFinal = (currentPoints + 4.0*remainingHours) / totalHours;
+    tileClass='coral';
+    statusHtml = `<div class="result-tile coral"><span class="bilingual"><span class="ar">الهدف غير قابل للتحقيق بالساعات المتبقية</span><span class="en">Target isn't reachable with remaining hours</span></span><span class="num">—</span></div>
+      <div class="encourage bilingual"><span class="ar">حتى لو حصلت على ٤.٠ في كل ما تبقى، أقصى معدل تراكمي ممكن هو <strong>${fmt(maxFinal)}</strong>. جرّب خفض الهدف قليلًا أو زيادة الساعات المتبقية.</span><span class="en">Even with a perfect 4.0 in everything left, the highest possible final GPA is <strong>${fmt(maxFinal)}</strong>. Try a slightly lower target, or more remaining hours.</span></div>`;
+  } else if(neededAvg<=0){
+    tileClass='green-soft';
+    statusHtml = `<div class="result-tile"><span class="bilingual"><span class="ar">هدفك مضمون بالفعل! 🎉</span><span class="en">Your target is already secured! 🎉</span></span><span class="num">✓</span></div>
+      <div class="encourage bilingual"><span class="ar">حتى لو حصلت على ٠.٠ في الباقي رياضيًا لن تنخفض دون الهدف بهذه الساعات — لكن استمر بالاجتهاد بالطبع.</span><span class="en">Mathematically you won't drop below target even at 0.0 remaining — but of course, keep up the good work.</span></div>`;
+  } else {
+    statusHtml = `<div class="result-tile"><span class="bilingual"><span class="ar">المعدل المطلوب لكل ساعة متبقية</span><span class="en">Required average for remaining hours</span></span><span class="num">${fmt(neededAvg)}</span></div>`;
+  }
+
+  // ladder per term
+  let runHours=completedHours, runPoints=currentPoints;
+  let rungs = `<div class="rung"><span class="dot now">الآن</span><span class="label bilingual"><span class="ar">وضعك الحالي</span><span class="en">Current status</span><div class="sub">${completedHours} ساعة</div></span><span class="val">${fmt(currentGpa)}</span></div>`;
+  planTerms.forEach((t,i)=>{
+    const hrs = Number(t.hours)||0;
+    const req = clamp(neededAvg,0,4);
+    runPoints += req*hrs; runHours += hrs;
+    const running = runHours>0 ? runPoints/runHours : 0;
+    rungs += `<div class="rung"><span class="dot">${i+1}</span><span class="label">${t.name}<div class="sub bilingual"><span class="ar">${hrs} ساعة · تراكمي متوقع بعده: ${fmt(running)}</span><span class="en">${hrs} hrs · projected cumulative after: ${fmt(running)}</span></div></span><span class="val">${fmt(req)}</span></div>`;
+  });
+  rungs += `<div class="rung"><span class="dot target">🎯</span><span class="label bilingual"><span class="ar">الهدف عند التخرج</span><span class="en">Target at graduation</span></span><span class="val">${fmt(targetGpa)}</span></div>`;
+
+  box.innerHTML = statusHtml + `<div class="ladder">${rungs}</div>` +
+    `<div class="encourage bilingual"><span class="ar">✨ ${randomEncourage().ar}</span><span class="en">✨ ${randomEncourage().en}</span></div>`;
+
+  lastPlanResult = {neededAvg: clamp(neededAvg,0,4)};
+
+  // show next-term interactive tool prefilled from first plan term
+  const nextCard = document.getElementById('nextTermCard');
+  if(planTerms.length){
+    nextCard.style.display='block';
+    if(!nextTermCourses.length){
+      nextTermCourses = [{id:uid(), name:'مادة 1', hours: Math.min(3, planTerms[0].hours)||3, point: lastPlanResult.neededAvg}];
+    }
+    renderNextTermTable();
+  } else {
+    nextCard.style.display='none';
+  }
+}
+function renderNextTermTable(){
+  const tbody = document.getElementById('nextTermRows');
+  tbody.innerHTML='';
+  nextTermCourses.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td><input type="text" value="${c.name}" data-f="name" data-id="${c.id}"></td>
+      <td><input type="number" style="width:70px" step="0.5" value="${c.hours}" data-f="hours" data-id="${c.id}"></td>
+      <td><input type="number" style="width:80px" step="0.1" min="0" max="4" value="${c.point}" data-f="point" data-id="${c.id}"></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{
+    const row = nextTermCourses.find(x=>x.id===inp.dataset.id); if(!row) return;
+    row[inp.dataset.f] = inp.dataset.f==='name' ? inp.value : Number(inp.value);
+    computeNextTerm();
+  }));
+  computeNextTerm();
+}
+function computeNextTerm(){
+  let h=0,p=0;
+  nextTermCourses.forEach(c=>{ h+=Number(c.hours)||0; p+=(Number(c.hours)||0)*(Number(c.point)||0); });
+  const gpa = h>0? p/h : 0;
+  const tile = document.getElementById('nextTermResultTile');
+  document.getElementById('nextTermResult').textContent = fmt(gpa);
+  if(lastPlanResult){
+    tile.className = 'result-tile ' + (gpa+0.001>=lastPlanResult.neededAvg ? '' : 'coral');
+  }
+}
+
+/* ============ Dedication (fixed, non-editable) ============ */
+function openDedication(){ document.getElementById('dedicationModal').classList.add('open'); }
+function closeDedication(){ document.getElementById('dedicationModal').classList.remove('open'); }
+
+/* ============ Converter ============ */
+function bindConverter(){
+  const pEl=document.getElementById('convPercent'), gEl=document.getElementById('convPoint'), mEl=document.getElementById('convMethod'), out=document.getElementById('convResult');
+  function run(source){
+    const method = mEl.value;
+    if(source==='p'){
+      const pct = Number(pEl.value);
+      if(isNaN(pct)){ out.textContent='—'; return; }
+      const pt = method==='linear' ? clamp(pct/25,0,4) : percentToPoint(pct, US_TABLE);
+      out.textContent = pt.toFixed(2)+' / 4.0';
+      gEl.value='';
+    } else if(source==='g'){
+      const pt = Number(gEl.value);
+      if(isNaN(pt)){ out.textContent='—'; return; }
+      const pct = method==='linear' ? Math.round(clamp(pt*25,0,100)) : pointToPercentApprox(pt, US_TABLE);
+      out.textContent = pct+' / 100';
+      pEl.value='';
+    }
+  }
+  pEl.addEventListener('input', ()=>run('p'));
+  gEl.addEventListener('input', ()=>run('g'));
+  mEl.addEventListener('change', ()=>{ if(pEl.value) run('p'); else if(gEl.value) run('g'); });
+}
+
+/* ============ Init & events ============ */
+async function init(){
+  await loadState();
+  applyLang();
+  updateActiveSystemLabel();
+  renderSystemsList();
+  renderMyCustomSystems();
+  addSemRow();
+  addPlanTerm();
+  bindConverter();
+  refreshSemEncourage();
+  document.getElementById('manualPriorGpa').value = state.cumManual.gpa || '';
+  document.getElementById('manualPriorHours').value = state.cumManual.hours || '';
+
+  document.querySelectorAll('.lang-switch button').forEach(b=>b.addEventListener('click', ()=>{
+    state.lang = b.dataset.lang; applyLang(); saveSettings();
+    renderSystemsList(); renderMyCustomSystems(); updateActiveSystemLabel(); renderHistory(); renderCumulative();
+  }));
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('click', ()=>switchTab(b.dataset.tab)));
+
+  document.getElementById('dedicationBtn').addEventListener('click', openDedication);
+  document.getElementById('dedClose').addEventListener('click', closeDedication);
+  document.getElementById('dedicationModal').addEventListener('click', (e)=>{ if(e.target.id==='dedicationModal') closeDedication(); });
+
+  document.getElementById('addCustomRow').addEventListener('click', ()=>addCustomRow());
+  document.getElementById('saveCustomSys').addEventListener('click', ()=>{
+    const name = document.getElementById('customSysName').value.trim();
+    const type = document.getElementById('customSysType').value;
+    if(!name || !customRows.length){ showToast('أدخل اسم النظام وتقديرًا واحدًا على الأقل / Add a name and at least one grade'); return; }
+    const sys = {id:'custom_'+uid(), builtin:false, type, scale: customRows.map(r=>({label:r.label||'-', min:Number(r.min)||0, max:Number(r.max)||0, point:Number(r.point)||0})), name:{ar:name, en:name}};
+    state.customSystems.push(sys);
+    saveKey('customSystems', state.customSystems);
+    customRows=[]; renderCustomRows();
+    document.getElementById('customSysName').value='';
+    renderMyCustomSystems();
+    showToast('تم حفظ النظام / System saved');
+  });
+
+  document.getElementById('addSemRow').addEventListener('click', ()=>addSemRow());
+  document.getElementById('saveSemester').addEventListener('click', async ()=>{
+    const {gpa, totalHours} = computeSemester();
+    if(totalHours<=0){ showToast('أضف مادة واحدة على الأقل بساعات معتمدة / Add at least one course with hours'); return; }
+    const sys = getSystem(state.activeSystemId);
+    const coursesSnapshot = semCourses.map(c=>({
+      name:c.name, hours:Number(c.hours)||0,
+      pointUsed: sys.type==='percent' ? percentToPoint(c.val, sys.scale) : Number(c.val)||0
+    }));
+    const sem = {
+      id: uid(),
+      name: document.getElementById('semName').value.trim() || ('فصل بلا اسم '+(state.semesters.length+1)),
+      date: Date.now(),
+      systemId: state.activeSystemId,
+      courses: coursesSnapshot,
+      gpa, totalHours
+    };
+    state.semesters.push(sem);
+    await saveKey('semesters', state.semesters);
+    showToast('تم حفظ الفصل في السجل ✓ / Term saved to history');
+    refreshSemEncourage();
+    document.getElementById('semName').value='';
+    semCourses=[]; addSemRow();
+  });
+
+  document.getElementById('applyManual').addEventListener('click', ()=>{
+    state.cumManual = { gpa: Number(document.getElementById('manualPriorGpa').value)||0, hours: Number(document.getElementById('manualPriorHours').value)||0 };
+    saveKey('cumManual', state.cumManual);
+    renderCumulative();
+    showToast('تم الدمج / Merged');
+  });
+
+  document.getElementById('addPlanTerm').addEventListener('click', ()=>addPlanTerm());
+  document.getElementById('computePlan').addEventListener('click', computePlan);
+  document.getElementById('useCurrentCum').addEventListener('click', ()=>{
+    document.getElementById('planCurrentGpa').value = fmt(cumulativeTotals().gpa);
+    document.getElementById('planCompletedHours').value = cumulativeTotals().hours;
+  });
+  document.getElementById('addNextTermCourse').addEventListener('click', ()=>{
+    nextTermCourses.push({id:uid(), name:'مادة '+(nextTermCourses.length+1), hours:3, point: lastPlanResult? lastPlanResult.neededAvg : 3});
+    renderNextTermTable();
+  });
+
+  renderCustomRows();
+  renderPlanTerms();
+  switchTab('welcome');
+}
+init();
+})();
+</script>
+</body>
+</html>
